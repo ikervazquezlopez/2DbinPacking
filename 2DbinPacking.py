@@ -1,5 +1,7 @@
 from PIL import Image
 import glob
+import cv2
+import numpy as np
 
 class PackNode(object):
     """
@@ -42,7 +44,6 @@ if __name__ == "__main__":
     size = 2048,2048
     #get a list of PNG files in the current directory
     names = glob.glob("*.png")
-
     #create a list of PIL Image objects, sorted by size
     images = sorted([(i.size[0]*i.size[1], name, i) for name,i in ((x,Image.open(x).convert(format)) for x in names)])
 
@@ -55,4 +56,8 @@ if __name__ == "__main__":
         if uv is None: raise ValueError('Pack size too small.')
         image.paste(img, uv.area)
 
-    image.show()
+    image = np.array(image)
+    image = cv2.cvtColor(image, cv2.COLOR_RGBA2BGR)
+    cv2.imshow("test", image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
