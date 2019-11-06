@@ -3,6 +3,10 @@ import glob
 import cv2
 import numpy as np
 
+
+format = 'RGB'
+size = 4096,4096
+
 class PackNode(object):
     """
     Creates an area which can recursively pack other areas of smaller sizes into itself.
@@ -38,26 +42,32 @@ class PackNode(object):
             return PackNode((self.area[0], self.area[1], self.area[0]+area.width, self.area[1]+area.height))
 
 
-if __name__ == "__main__":
-    format = 'RGBA'
-    #size of the image we are packing into
-    size = 2048,2048
-    #get a list of PNG files in the current directory
-    names = glob.glob("*.png")
-    #create a list of PIL Image objects, sorted by size
-    images = sorted([(i.size[0]*i.size[1], name, i) for name,i in ((x,Image.open(x).convert(format)) for x in names)])
+# Input: an array of tuples with id and image mat: [(id0, img0), (id1,img1),...]
+def get_object_atlas(image_list):
+    images = [(x, Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)) ) for x, img in image_list]
+    images = [(i.size[0]*i.size[1], id, i) for id,i in images]
+    images = sorted(images)
+    #images = sorted([(i.size[0]*i.size[1], id, i) for id,i in ((x,Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)) for x, img in image_list))])
 
     tree = PackNode(size)
     image = Image.new(format, size)
 
-    #insert each image into the PackNode area
     for area, name, img in images:
         uv = tree.insert(img.size)
         if uv is None: raise ValueError('Pack size too small.')
         image.paste(img, uv.area)
 
     image = np.array(image)
-    image = cv2.cvtColor(image, cv2.COLOR_RGBA2BGR)
-    cv2.imshow("test", image)
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    return image
+
+
+"""
+if __name__ == "__main__":
+    names = ["test_texture.png"]
+    image_list = [ (i, cv2.imread(names[i])) for i in range(len(names))]
+    atlas = get_object_atlas(image_list)
+    cv2.imshow("atlas", atlas)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+"""
