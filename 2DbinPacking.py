@@ -52,21 +52,23 @@ def get_object_atlas(image_list):
     tree = PackNode(size)
     image = Image.new(format, size)
 
-    for area, name, img in images:
+    data = {}
+    for area, id, img in images:
         uv = tree.insert(img.size)
         if uv is None: raise ValueError('Pack size too small.')
         image.paste(img, uv.area)
+        data[id] = uv.area
 
     image = np.array(image)
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    return image
-
+    return image, data
 
 """
 if __name__ == "__main__":
-    names = ["test_texture.png"]
+    names = ["test_texture.png", "test_texture.png", "test_texture.png", "test_texture.png"]
     image_list = [ (i, cv2.imread(names[i])) for i in range(len(names))]
-    atlas = get_object_atlas(image_list)
+    atlas, data = get_object_atlas(image_list)
+    print(data)
     cv2.imshow("atlas", atlas)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
